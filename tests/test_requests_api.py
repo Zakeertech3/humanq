@@ -1,3 +1,6 @@
+from datetime import UTC, datetime, timedelta
+
+import pytest
 from fastapi.testclient import TestClient
 
 APPROVAL = {
@@ -210,6 +213,48 @@ def test_status_filter_all_returns_open_and_resolved(
 
     every = app_client.get("/requests?status=all", headers=admin_headers).json()
     assert {item["id"] for item in every} == {resolved["id"], still_open["id"]}
+
+
+def fetch_first(
+    client: TestClient,
+    headers: dict[str, str],
+    status_filter: str,
+) -> dict[str, object]:
+    response = client.get(f"/requests?status={status_filter}", headers=headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    return body[0]
+
+
+def test_resolved_score_freezes_while_open_scores_keep_rising(
+    app_client: TestClient,
+    agent_headers: dict[str, str],
+    admin_headers: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    resolved = post_request(app_client, agent_headers, title="Resolved one", blocked_tasks=2)
+    post_request(app_client, agent_headers, title="Open one", blocked_tasks=2)
+    app_client.post(
+        f"/requests/{resolved['id']}/resolve",
+        json={"resolution": "Done"},
+        headers=admin_headers,
+    )
+
+    first_resolved = fetch_first(app_client, admin_headers, "resolved")
+    first_open = fetch_first(app_client, admin_headers, "open")
+
+    def five_hours_later() -> datetime:
+        return datetime.now(UTC) + timedelta(hours=5)
+
+    monkeypatch.setattr("board.routes.requests.utc_now", five_hours_later)
+
+    second_resolved = fetch_first(app_client, admin_headers, "resolved")
+    second_open = fetch_first(app_client, admin_headers, "open")
+
+    assert second_resolved["score"] == first_resolved["score"]
+    assert second_open["score"] > first_open["score"]
+    assert second_open["score"] == first_open["score"] + 300
 
 
 def test_invalid_status_filter_is_rejected(

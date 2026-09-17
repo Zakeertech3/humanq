@@ -17,6 +17,7 @@ StatusFilter = Literal["open", "resolved", "all"]
 
 
 def to_request_out(request: Request, now: datetime) -> RequestOut:
+    effective_now = request.resolved_at if request.resolved_at is not None else now
     return RequestOut(
         id=request.id,
         agent_id=request.agent_id,
@@ -28,7 +29,7 @@ def to_request_out(request: Request, now: datetime) -> RequestOut:
         blocked_tasks=request.blocked_tasks,
         status=request.status,
         resolution=request.resolution,
-        score=score(request.blocked_tasks, request.created_at, request.request_type, now),
+        score=score(request.blocked_tasks, request.created_at, request.request_type, effective_now),
         created_at=request.created_at,
         resolved_at=request.resolved_at,
     )

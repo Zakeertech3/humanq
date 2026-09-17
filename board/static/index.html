@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>humanq</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-inner">
+    <span class="brand">humanq</span>
+    <div class="bar-right">
+      <span id="count" class="count"></span>
+      <span id="updated" class="updated"></span>
+      <a id="signout" class="signout" href="#" hidden>sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="gate" class="gate" hidden>
+    <h1 class="gate-title">humanq</h1>
+    <p class="gate-hint">Enter the admin key to open the board.</p>
+    <input id="key" type="password" autocomplete="off" spellcheck="false">
+    <button id="save" type="button" class="primary block">Open board</button>
+    <p id="gate-error" class="gate-error" hidden></p>
+  </section>
+
+  <section id="board" hidden>
+    <div class="controls">
+      <div class="segmented">
+        <button id="tab-open" type="button" class="segment active">Open</button>
+        <button id="tab-resolved" type="button" class="segment">Resolved</button>
+      </div>
+      <span id="flash" class="flash" hidden></span>
+    </div>
+    <p id="warning" class="warning" hidden></p>
+    <div id="list" class="list"></div>
+    <p id="empty" class="empty" hidden></p>
+  </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

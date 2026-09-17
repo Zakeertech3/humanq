@@ -4,6 +4,7 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
@@ -47,6 +48,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="humanq", version=package_version(), lifespan=lifespan)
     if STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+        @app.get("/", include_in_schema=False)
+        def read_index() -> FileResponse:
+            return FileResponse(STATIC_DIR / "index.html")
+
     app.include_router(health_router)
     app.include_router(agents_router)
     app.include_router(requests_router)
