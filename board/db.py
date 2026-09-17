@@ -36,6 +36,10 @@ def init_db(engine: Engine) -> None:
     Base.metadata.create_all(engine)
 
 
+def get_db() -> Iterator[Session]:
+    raise NotImplementedError
+
+
 def get_session(engine: Engine) -> Iterator[Session]:
     session = Session(engine)
     try:

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from board.config import Settings, get_settings
 from board.db import get_db, init_db, make_engine
+from board.routes.agents import router as agents_router
 from board.routes.health import router as health_router
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -38,6 +39,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 session.close()
 
         app.dependency_overrides[get_db] = session_dependency
+        app.dependency_overrides[get_settings] = lambda: active
         yield
         engine.dispose()
 
@@ -45,6 +47,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(health_router)
+    app.include_router(agents_router)
     return app
 
 
