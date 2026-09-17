@@ -11,6 +11,7 @@ from board.config import Settings, get_settings
 from board.db import get_db, init_db, make_engine
 from board.routes.agents import router as agents_router
 from board.routes.health import router as health_router
+from board.routes.requests import router as requests_router
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -48,6 +49,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(health_router)
     app.include_router(agents_router)
+    app.include_router(requests_router)
     return app
 
 

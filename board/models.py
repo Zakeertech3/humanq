@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, ForeignKey, Index, String, Text, TypeDecorator
 from sqlalchemy.engine.interfaces import Dialect
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class UtcDateTime(TypeDecorator[datetime]):
@@ -62,6 +62,8 @@ class Request(Base):
     resolution: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utc_now)
     resolved_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
+
+    agent: Mapped["Agent"] = relationship()
 
     __table_args__ = (
         Index("ix_requests_status", "status"),

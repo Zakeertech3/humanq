@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import secrets
+from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -50,6 +51,28 @@ def require_agent(
     agent.last_seen = utc_now()
     session.commit()
     return agent
+
+
+@dataclass(frozen=True)
+class Caller:
+    agent: Agent | None
+    is_admin: bool
+
+
+def require_agent_or_admin(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> Caller:
+    token = bearer_token(credentials)
+    if hmac.compare_digest(token, settings.board_admin_key):
+        return Caller(agent=None, is_admin=True)
+    agent = session.scalar(select(Agent).where(Agent.api_key_hash == hash_api_key(token)))
+    if agent is None:
+        raise unauthorized()
+    agent.last_seen = utc_now()
+    session.commit()
+    return Caller(agent=agent, is_admin=False)
 
 
 def require_admin(
